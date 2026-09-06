@@ -1,1 +1,380 @@
+/******\
+<*Vars*>
+\******/
 
+var dist
+dist = foe.distance
+
+var CanActive
+CanActive = item.CanActivate()
+
+var speAct
+speAct = item.CanActivate
+
+var pot
+?loc.begin
+ pot = 1
+
+var fo
+fo = foe
+
+var foes
+foes = foe.count
+
+var CD
+CD = item.GetCooldown
+
+var Dbuff
+Dbuff = foe.debuffs.string
+
+var ShHeal
+ShHeal = hp <= maxhp * 0.8
+
+var p3fre
+?loc.stars >= 10
+ p3fre = 1
+:
+ p3fre = 0
+
+var type1
+var type2
+var addon1
+var addon2
+var element1
+
+var fs
+fs = foe.state
+
+var fdt
+fdt = foe.debuffs.GetTime
+
+var blade_req
+blade_req = 5
+
+var d
+
+/*********\
+<*weapons*>
+\*********/
+
+/*¡IMPORTANT! CHANGE THESE TO YOUR WEAPONS*/
+
+func heal()
+ equipR vigor sword +17
+ ?fo=phase2
+  equipL @element2@
+ :
+  equipL vigor sword +16
+ ?dist > 5
+  dabash(bash)
+  ?dabash(bash)
+   dabash(dash)
+
+func dabash(w)
+ ?CD(w) <= 0
+  equipL sword
+  equipR @w@
+ :
+  return true
+
+func regular()
+ ?CD(＂quarterstaff＂) <= 0 & !ai.paused
+  staff()
+ :
+  equipL trisk
+  ?pickup.distance <= 6
+   equipR star
+  :
+   ?buffs.GetCount(＂lucky_mult＂) >= 1
+    equipR cult
+   :
+    equipR comp
+
+func freezedys()
+ equipL ice wand +13
+ moonright(＂comp＂)
+
+/******\
+<*funk*>
+\******/
+
+//these will activate your abilities
+
+func staff()
+ ?CD(＂quarterstaff＂) <= 0
+  equip quarterstaff
+  ?CanActive
+   activate R
+   break
+
+//summon your best friend!
+
+func summon()
+ ?CD(＂talisman_Æther＂) <= 0
+ ^ & summon.count <= 0
+  equipL Æther talisman
+  ?pickup.distance <= 6
+   equipR star
+  :
+   equipR comp
+  ?CanActive
+   activate L
+   break
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func mask()
+ ?CD(＂mask＂) <= 0
+  equipR cult
+  ?CanActive
+   activate R
+   break
+
+func ArmorBreak()
+ ?foe.distance < 22
+ ^& CD(＂heavy_hammer＂)<=0
+ ^| item.right=＂heavy hammer＂
+ ^& item.right.state=2
+  equip heavy
+  ?CanActive
+   activate R
+
+func MY_ARM()
+ ?item.GetCooldown(＂skeleton_arm＂) <= 0
+ ^&foe!une_to_physical^&foe.distance<10
+  equip skeleton arm
+  ?item.CanActivate(＂skeleton_arm＂)
+  ^&buffs.string=2
+   activate R
+
+//HUGE DAMAGE IF MAX BARDICHE!
+
+func bard()
+ ?CD(＂bardiche＂) <= 0
+ ^  | CD(＂bardiche＂) >= 875
+  equip bard
+  ?CanActive
+   activate R
+   break
+
+func hyfre()
+ ?CD(＂frost＂) <= 0
+  equipL frost
+  ?CanActive
+   activate L
+
+func moonleft(o)
+ ?item.right.state = 2
+ ^ & item.left = moondial
+  equipL @o@
+ :
+  equipL moon
+
+func moonright(o)
+ ?item.left.state = 2
+ ^ & item.right = moondial
+  equipR @o@
+ :
+  equipR moon
+
+//from here on, change it to your weapons
+
+func iboss()
+ ?fo=phase1
+  p1()
+ ?fo=phase2
+  p2()
+ ?fo=phase3
+  p3()
+
+func p1()
+ ?foe.debuffs.GetCount(＂chill＂) >= 6
+  ?foe.debuffs.GetCount(＂debuff_dot＂) >= 1
+   heal()
+  :
+   equipL fire sword
+   moonright(＂comp＂)
+ :
+  freezedys()
+
+func p2()
+ equipL @element1@ @type1@ @addon1@
+ ?foe=ice
+  element1 = ＂fire＂
+  type1 = ＂sword＂
+  type2 = ＂shield＂
+  addon1 = ＂*10 +7＂
+  addon2 = ＂*4＂
+  //equipR @element1@ @type2@ @addon2@
+  moonright(＂fire shield＂)
+ ?foe=fire
+  element1 = ＂Æther＂
+  type1 = ＂sword＂
+  type2 = ＂sword＂
+  addon1 = ＂dU +15＂
+  addon2 = ＂dU +14＂
+  equipR @element1@ @type2@ @addon2@
+ ?foe=Æther
+  element1 = ＂vigor＂
+  type1 = ＂sword＂
+  type2 = ＂sword＂
+  addon1 = ＂*10 +17＂
+  addon2 = ＂*10 +16＂
+  equipR @element1@ @type2@ @addon2@
+ ?foe=vigor
+  element1 = ＂poison＂
+  type1 = ＂sword＂
+  type2 = ＂sword＂
+  addon1 = ＂*8 +6＂
+  addon2 = ＂*7 +5＂
+  equipR @element1@ @type2@ @addon2@
+ ?foe=poison
+  element1 = ＂ice＂
+  type1 = ＂sword＂
+  type2 = ＂sword＂
+  addon1 = ＂*10 +12＂
+  addon2 = ＂*10 +11＂
+  equipR @element1@ @type2@ @addon2@
+
+func p3()
+ ?fdt(＂chill＂) < 15
+ ^ | foe.debuffs.GetCount(＂chill＂) < 6
+ ^ & p3fre = 1
+  freezedys()
+ :?ShHeal
+  heal()
+ :?foe.armor > 0
+  ?foe.distance < 22
+  ^& CD(＂heavy_hammer＂)<=0
+  ^| item.right=＂heavy hammer＂
+  ^& item.right.state=2
+   ArmorBreak()
+  :
+   equipL aether hammer
+   equipR aether hammer +10
+ :?fdt(＂chill＂) < 15
+ ^ | foe.debuffs.GetCount(＂chill＂) < 6
+ ^ & p3fre = 1
+  freezedys()
+ :
+  ?foe.buffs.string ! ＂vigor＂
+   equipL vigor sword +17
+   equipR vigor sword +16
+  :?foe.buffs.string ! ＂ice＂
+   equipL ice sword +12
+   equipR ice sword +11
+  :?foe.buffs.string ! ＂Æther＂
+   equipL Æther sword dU +15
+   equipR Æther sword dU +14
+  :?foe.buffs.string ! ＂ice＂
+   equipL ice wand +11
+   equipR Æther sword
+
+//stunlock the scout
+
+func acro()
+ ?totaltime % 60 = 0
+  equip tower
+  equipL grappling
+ :?(foe.debuffs.GetTime(＂stun＂) >= 1
+ ^ | CD(＂bardiche＂) >= 870)
+ ^ & ((CD(＂bardiche＂) <= 0)
+ ^  | (CD(＂bardiche＂) >= 870))
+  bard()
+ :?CD(＂staff_fire＂) <= 0 & armor >= 6
+  equip infernal
+  ?CanActive
+   activate R
+ :?pot = 1
+  activate P
+  pot = 0
+ //insert anything that is not usable rn here!
+ :?fdt(＂stun＂) <= 10
+  equipL grappling
+  equipR cult
+ :?foe.debuffs.GetCount(＂chill＂) < 6
+  ?item.right.state ! 1
+   moonleft(＂vigor sword +16＂)
+  :
+   equipL quest
+  equipR ice wand +13
+ :
+  ?item.right.state ! 1
+   moonleft(＂vigor sword +16＂)
+  :
+   equipL quest
+  ?foe.debuffs.GetCount(＂debuff_dot＂) >= 1
+   equipR vigor sword
+  :
+   equipR fire sword
+
+func sold()
+ ?ShHeal
+  //use your lowest cooldown regen item here
+  equipR vigor sword +17
+ :
+  equipR Æther sword +13
+ //use your lowest cooldown Æther item here
+ equipL Æther sword +15
+
+
+/****\
+<*AI*>
+\****/
+
+//passive
+?dist >= 16 & foe!phase2
+ ?summon.count <= 0 & CD(＂talisman_Æther＂) <= 0
+ ^ & CanActive
+  summon()
+ :
+  regular()
+//dash
+:?dist > 14 & ((foe.state ! 115)
+^ | (foe.damage = 1)) & foe!phase2 & d = 0
+ dabash(bash)
+ ?dabash(bash)
+  dabash(dash)
+//ability usage
+:?CD(＂mask＂) <= 0 & foe.state <= 100
+ mask()
+:?foes >= blade_req & CD(＂blade＂) <= 0
+ BladeAct()
+//fight
+:?fo=boss & fo!humanoid
+ ?((CD(＂bardiche＂) <= 0)
+ ^  | (CD(＂bardiche＂) >= 870))
+ ^ & dist <= 7 & (foe!phase2 | (foe.time <= 2
+ ^ | CD(＂bardiche＂) >= 870) & foe=phase2)
+ ^ & foe.state <= 100 & d = 0
+   bard()
+ :
+  iboss()
+:?foe.state >= 127
+ equipL fire talisman
+ ?CanActive
+  activate L
+:?foe=acronian_scout | foe=acronian_warcaster
+^ | foe=elite
+ acro()
+:
+ sold()
+
+
+/*******\
+<*dodge*>
+\*******/
+
+?(foe.state = 115 & foe.time >= 60
+^ & CD(＂mind＂) <= 0) | (foe.time >= 55
+^ & foe.state = 32 & CD(＂mind＂) <= 0
+^ & foe.damage = 1)
+ equipL mind
+ equipR comp
+ d = 1
+:
+ d = 0
