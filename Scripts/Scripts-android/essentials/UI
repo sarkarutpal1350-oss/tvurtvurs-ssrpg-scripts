@@ -1,0 +1,17 @@
+/****\
+<*UI*>
+\****/
+>`0,13,#red, @hp@/@maxhp@ @armor@
+>`0,14, @foe.state@,@foe.time@,@foe.damage@
+>`0,15, @StateL@,@StateR@,@CanActive@
+>`0,25,#cyan, @item.left@ 
+>`0,26,#red, @item.right@
+>`0,18,#yellow, @debuffs.string@
+>`0,19,#green, @buffs.string@
+*/
+
+var StateL
+StateL = item.left.state
+
+var StateR
+StateR = item.right.state
