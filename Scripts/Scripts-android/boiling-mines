@@ -1,0 +1,208 @@
+/******\
+<*vars*>
+\******/
+
+var dist
+dist = foe.distance
+
+var foes
+foes = foe.count
+
+var stateL
+stateL = item.left.state
+
+var stateR
+stateR = item.right.state
+
+var fdf
+fdf = foe.debuffs.string
+
+var CD
+CD = item.GetCooldown
+
+var CanActive
+CanActive = item.CanActivate()
+
+var fo
+fo = foe
+
+var blade_req
+blade_req = 5
+
+var dodge
+dodge = 0
+
+var element1
+var element2
+element1 = ＂Æther sword +14＂
+element2 = ＂Æther sword +15＂
+
+var arm
+arm = ＂skeleton_arm＂
+
+var ShHeal
+ShHeal = hp <= maxhp * 0.8
+
+?loc.begin
+ brew stone
+
+/*********\
+<*weapons*>
+\*********/
+
+func heal()
+ equipR vigor sword +17
+ equipL vigor sword +16
+
+func debuff(D)
+ ?fdf ! D
+  Equip @D@ crossbow *8
+
+func dabash(w)
+ ?CD(w) <= 0
+  equipL sword
+  equipR @w@
+ :
+  return true
+
+func regular()
+ equipL trisk
+ ?pickup.distance <= 6
+  equipR star
+ :
+  equipR compound
+
+func closemain()
+ equipL @element1@
+ equipR @element2@
+
+/******\
+<*funk*>
+\******/
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func ArmorBreak()
+ ?(CD(＂heavy_hammer＂) <= 0)
+ ^ | item.right = ＂heavy_hammer＂
+ ^ & StateR = 2
+  equip heavy
+  ?CanActive & CD(＂heavy_hammer＂) <= 0
+   activate R
+ :
+  equipL æther hammer +12
+  equipR æther hammer +11
+
+func MY_ARM()
+ ?CD(arm) < 1 & foes >= 1 &
+ ^ foe.hp <= 120
+  equip arm
+  >@CD(arm)@
+  ?buffs.string = ＂pick_pocket＂ & CD(arm) <= 0
+  ^ & CanActive & foe.hp <= 16
+   activate R
+   break
+
+func summon()
+ ?CD(＂talisman_æther＂) <= 0
+  equipL talisman_aether
+  ?CanActive
+   activate L
+
+func bard()
+ ?CD(＂bardiche＂) <= 0
+ ^  | CD(＂bardiche＂) >= 875
+  equip bard
+  ?CanActive
+   activate R
+   break
+
+func mask()
+ ?CD(＂mask＂) <= 0
+  equipR cult
+  ?CanActive
+   activate R
+   break
+
+func db()
+ dabash(bash)
+ ?dabash(bash)
+  dabash(dash)
+
+func fight()
+ ?CD(＂blade＂) <= 0 & foes >= blade_req
+  BladeAct()
+ :?CD(＂voidweaver＂) <= 0 & foes >= 15
+  activate voidweaver
+ :?buffs.GetCount(＂smite＂) > 0
+  equipL ice wand +1
+  equipR poison wand dP 
+ :?dist > 10
+  equip Æther crossbow
+ :
+  ?ShHeal
+   heal()
+  :
+   ?fdf = unstable
+    equip repeating
+   :
+    closemain()
+
+func bronze()
+ ?buffs.GetCount(＂smite＂) > 0
+  equipL poison wand dP
+  equipR moondial
+ :?foe.state = 33
+  ?dist >= 17
+   regular()
+  :?dist >= 15
+   db()
+  :
+   ?hp < maxhp
+    heal()
+   :
+    ?item.potion = strength
+     activate P
+    :?foe.armor >= 0
+     ArmorBreak()
+    :?CD(＂bardiche＂) <= 0
+    ^  | CD(＂bardiche＂) >= 875
+     bard()
+    :
+     ?item.potion = lucky
+      activate P
+     closemain()
+ :
+  equip repeating
+
+/****\
+<*AI*>
+\****/
+?foe=bronze_guardian
+ bronze()
+:
+ ?dist >= 17
+  ?summon.count <= 0
+  ^ & CD(＂talisman_æther＂) <= 0
+   summon()
+  :
+   regular()
+ :?dist >= 15 & foe!bomb_cart
+  db()
+ :
+  fight()
+
+//dodge
+?(foe=bomb_cart & (foe.hp <= 50 | dist <= 4)
+^ & CD(＂mind＂) <= 0)
+^ | (foe=bronze_guardian
+^ & foe.state=32 & foe.time > 32
+^ & CD(＂mind＂) <= 0)
+ equipL mind
+ equipR compound
+ dodge = 1
+ break
