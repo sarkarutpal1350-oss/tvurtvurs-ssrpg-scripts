@@ -1,0 +1,272 @@
+/*NOTE:
+THIS SCRIPT ONLY WORKS IF LESS THAN
+GREEN STARS*/
+/******\
+<*vars*>
+\******/
+
+var pbs
+pbs = buffs.string
+
+var dist
+dist = foe.distance
+
+var foes
+foes = foe.count
+
+var stateL
+stateL = item.left.state
+
+var stateR
+stateR = item.right.state
+
+var fdf
+fdf = foe.debuffs.string
+
+var fdc
+fdc = foe.debuffs.GetCount
+
+var fdt
+fdt = foe.debuffs.GetTime
+
+var CD
+CD = item.GetCooldown
+
+var CanActive
+CanActive = item.CanActivate()
+
+var CA
+CA = item.CanActivate
+var fo
+fo = foe
+
+var blade_req
+blade_req = 8
+
+var dodge
+dodge = 0
+
+var element1
+var element2
+element1 = ＂ice wand +13＂
+element2 = ＂Æther sword +12＂
+
+var arm
+arm = ＂skeleton_arm＂
+
+var ShHeal
+ShHeal = hp <= maxhp * 0.8
+
+/*********\
+<*weapons*>
+\*********/
+
+func heal()
+ equipR vigor sword +17
+ equipL vigor sword +16
+
+func debuff(D)
+ ?fdf ! D
+  Equip @D@ crossbow *8
+
+func dabash()
+ ?CD(＂bash＂) <= 0
+  equipL sword
+  equipR bash
+ :
+  equipL sword
+  equipR dash
+
+func regular()
+ ?CD(＂quarterstaff＂) <= 0
+  staff()
+ equipL trisk
+ ?pickup.distance <= 6
+  equipR star
+ :
+  equipR compound
+
+func closemain()
+ equip stone socketed staff
+
+/******\
+<*funk*>
+\******/
+func staff()
+ ?CD(＂quarterstaff＂) <= 0
+  equip quarterstaff
+  ?CanActive
+   activate R
+   break
+
+func moonleft(o)
+ ?item.right.state = 2
+ ^ & item.left = moondial
+  equipL @o@
+ :
+  equipL moon
+
+func moonright(o)
+ ?item.left.state = 2
+ ^ & item.right = moondial
+  equipR @o@
+ :
+  equipR moon
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func ArmorBreak()
+ ?CD(＂heavy＂) <= 0
+  equip heavy
+  ?CanActive & CD(＂heavy＂) <= 0
+   activate R
+
+func MY_ARM()
+ ?CD(arm) < 1 & foes >= 1 &
+ ^ foe.hp <= 120
+  equip arm
+  >@CD(arm)@
+  ?buffs.string = ＂pick_pocket＂ & CD(arm) <= 0
+  ^ & CanActive & foe.hp <= 16
+   activate R
+   break
+
+func summon()
+ ?CD(＂talisman_æther＂) <= 0
+  equipL talisman_aether
+  ?CanActive
+   activate L
+
+func bard()
+ ?CD(＂bardiche＂) <= 0
+ ^  | CD(＂bardiche＂) >= 875
+  equip bard
+  ?CanActive
+   activate R
+   break
+
+func mask()
+ ?CD(＂mask＂) <= 0
+  equipR cult
+  ?CanActive
+   activate R
+   break
+
+func fight()
+ ?CD(＂blade＂) <= 0 & foes >= blade_req
+  BladeAct()
+ :?CD(＂voiweaver＂) <= 0 & foes >= 10
+  activate voidweaver
+ :?pbs = ＂smite＂
+  ?foe ! immune_to_ranged
+   equipL ice wand +1
+   moonright(comp)
+  :
+   equipL fire sword
+   moonright(comp)
+ :?(dist > 10 | (item.right = crossbow_ice
+ ^ & item.right.state = 2))
+ ^ & foe ! immune_to_ranged
+  equip ice crossbow
+ :
+  ?ShHeal
+   heal()
+  :
+   ?fdf = unstable
+   ^ & debuffs.string ! ＂debuff_duration_damage＂
+    equipL aether sword
+    equipR aether sword+14
+   :
+    closemain()
+
+func mini()
+ ?dist > 10
+  equip ice crossbow
+ :
+  ?fdt(＂stun＂) > 10
+   ?fdt(＂chill＂) <= 10
+    closemain()
+   :
+    equipL ice sword +8
+    equipR ice sword +7
+  :
+   equipL socketed hammer
+   equipR cult
+
+func boss()
+ ?hp < maxhp
+  ?fdc(＂chill＂) < 6
+   equipL ice wand +1
+   moonright(comp)
+  :
+   heal()
+ :
+  ?(CD(＂bardiche＂) <= 0
+  ^  | CD(＂bardiche＂) >= 875) & dist <= 7
+   bard()
+  :?fdc(＂chill＂) < 6
+   equipL ice wand +1
+   moonright(shield)
+  :
+   activate P
+   closemain()
+  
+func boss2()
+ ?fdt(＂stun＂) > 18 & foe!immune_to_stun
+  ?fdt(＂chill＂) <= 10
+   equipL ice wand +1
+   moonright(comp)
+  :?hp < maxhp
+   heal()
+  :
+   ?fdt(＂fire＂) <= 10
+    equipL fire sword
+   :
+    equipL ice sword +10
+   equipR ice sword
+ :
+  equipL socketed hammer
+  equipR cult
+
+/****\
+<*AI*>
+\****/
+?dist >= 17
+ ?summon.count <= 0
+ ^ & CD(＂talisman_æther＂) <= 0
+ ^ & CanActive
+  summon()
+ :
+  regular()
+:?dist > 15 & foe!phase2
+ dabash()
+:?foe=boss
+ ?foe=phase1
+  boss()
+ :?foe=phase2 & foe.buffs.string ! ＂mirror＂
+  boss2()
+ :?foe.buffs.string = ＂mirror＂
+  ?loc.stars <= 15
+   equipL sword
+   equipR shield
+  :
+   closemain()
+ :
+  mini()
+:
+ fight()
+
+//dodge
+?(foe=bomb_cart & (foe.hp <= 50 | dist <= 4)
+^ & CD(＂mind＂) <= 0)
+^ | (foe=phase2
+^ & foe.state=32 & foe.time > 44
+^ & CD(＂mind＂) <= 0)
+ equipL mind
+ equipR compound
+ dodge = 1
+ break
