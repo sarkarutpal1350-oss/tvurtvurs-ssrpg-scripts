@@ -21,4 +21,5 @@ A collection of custom automation and combat scripts for SSRPG. These scripts ha
  * Paste the script into your main script file or reference it using import.
  * Adjust item IDs, equip slots, or cooldown variables to match your current gear set.
 
+##
 (thank you, gemini)
