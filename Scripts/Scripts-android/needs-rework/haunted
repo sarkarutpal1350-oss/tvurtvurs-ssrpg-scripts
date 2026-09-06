@@ -1,0 +1,151 @@
+/******\
+<*vars*>
+\******/
+
+var dist
+dist = foe.distance
+
+var foes
+foes = foe.count
+
+var stateL
+stateL = item.left.state
+
+var stateR
+stateR = item.right.state
+
+var fdf
+fdf = foe.debuffs.string
+
+var CD
+CD = item.GetCooldown
+
+var CanActive
+CanActive = item.CanActivate()
+
+var fo
+fo = foe
+
+var blade_req
+blade_req = 5
+
+var dodge
+dodge = 0
+
+var element1
+var element2
+element1 = ＂vigor *10 +17＂
+element2 = ＂vigor *10 +15＂
+
+var arm
+arm = ＂skeleton_arm＂
+
+/*********\
+<*weapons*>
+\*********/
+
+func heal()
+ equipR vigor sword +16
+ equipL vigor sword +15
+
+func debuff(D)
+ ?fdf ! D
+  Equip @D@ crossbow *8
+
+func dabash(w)
+ ?CD(@w@)
+  equipL sword
+  equipR @w@
+ :
+  return true
+
+func bronze()
+ equip repeating
+
+func closemain()
+ equipL sword @element1@
+ equipR sword @element2@
+
+/******\
+<*funk*>
+\******/
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func ArmorBreak()
+ ?CD(＂heavy＂) <= 0
+  equip heavy
+  ?CanActive
+   activate R
+
+func MY_ARM()
+ ?CD(arm) < 1 & foes >= 1 &
+ ^ foe.hp <= 120
+  equip arm
+  >@CD(arm)@
+  ?buffs.string = ＂pick_pocket＂ & CD(arm) <= 0
+  ^ & CanActive & foe.hp <= 16
+   activate R
+   break
+
+
+/****\
+<*AI*>
+\****/
+
+//passive
+
+?dist > 16
+ ?foe!bronze_guardian
+  equipL trisk
+  ?pickup.distance > 5
+   equipR compound *9
+  :
+   equipR star
+ :
+  bronze()
+
+//dash
+:?dist > 15 & dodge = 0 & foe!immune_to_physical
+ dabash(bash)
+ ?dabash(bash)
+  dabash(dash)
+
+//aggro
+:?fdf ! ＂debuff_dot＂ & foe!immune_to_ranged
+^ & foe!immune_to_physical
+ debuff(fire)
+:?fdf ! ＂Chill＂ & foe!immune_to_ranged
+^ & foe!immune_to_physical
+ debuff(ice)
+:?(dist > 12 & foe!immune_to_ranged
+^ & hp > maxhp * 0.8) | foe=immune_to_physical
+ equip vigor staff 
+:?CD(＂blade＂) <= 0 & foes >= blade_req
+ BladeAct()
+:?CD(arm) < 1 & foes >= 1 &
+^ foe.hp <= 120
+ MY_ARM()
+:
+ ?foe.armor <= 0 | hp < maxhp * 0.8
+  ?hp < maxhp * 0.8
+   heal()
+  :
+   closemain()
+ :
+  ArmorBreak()
+
+//dodge
+?(foe=puff & (foe.hp <= 50 | dist <= 4)
+^ & CD(＂mind＂) <= 0)
+^ | (foe=mushroom_boss & foe!mushroom_thin
+^ & foe.state=32 & foe.time > 25
+^ & CD(＂mind＂) <= 0)
+ equipL mind
+ equipR compound
+ dodge = 1
+ break
