@@ -1,0 +1,237 @@
+/******\
+<*vars*>
+\******/
+
+var dist
+dist = foe.distance
+
+var foes
+foes = foe.count
+
+var stateL
+stateL = item.left.state
+
+var stateR
+stateR = item.right.state
+
+var fdf
+fdf = foe.debuffs.string
+
+var fdc
+fdc = foe.debuffs.GetCount
+
+var fdt
+fdt = foe.debuffs.GetTime
+
+var CD
+CD = item.GetCooldown
+
+var CanActive
+CanActive = item.CanActivate()
+
+var fo
+fo = foe
+
+var blade_req
+blade_req = 8
+
+var dodge
+dodge = 0
+
+var element1
+var element2
+element1 = ＂ice wand +13＂
+element2 = ＂Æther sword +12＂
+
+var arm
+arm = ＂skeleton_arm＂
+
+var ShHeal
+ShHeal = hp <= maxhp * 0.8
+
+/*********\
+<*weapons*>
+\*********/
+
+func heal()
+ equipR vigor sword +17
+ equipL vigor sword +16
+
+func debuff(D)
+ ?fdf ! D
+  Equip @D@ crossbow *8
+
+func dabash(w)
+ ?CD(w) <= 0
+  equipL sword
+  equipR @w@
+ :
+  return true
+
+func regular()
+ ?CD(＂quarterstaff＂) <= 0
+  staff()
+ equipL trisk
+ ?pickup.distance <= 6
+  equipR star
+ :
+  equipR compound
+
+func closemain()
+ equipL @element1@
+ moonright(comp)
+
+/******\
+<*funk*>
+\******/
+func staff()
+ ?CD(＂quarterstaff＂) <= 0
+  equip quarterstaff
+  ?CanActive
+   activate R
+   break
+func moonleft(o)
+ ?item.right.state = 2
+ ^ & item.left = moondial
+  equipL @o@
+ :
+  equipL moon
+
+func moonright(o)
+ ?item.left.state = 2
+ ^ & item.right = moondial
+  equipR @o@
+ :
+  equipR moon
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func ArmorBreak()
+ ?CD(＂heavy＂) <= 0
+  equip heavy
+  ?CanActive & CD(＂heavy＂) <= 0
+   activate R
+
+func MY_ARM()
+ ?CD(arm) < 1 & foes >= 1 &
+ ^ foe.hp <= 120
+  equip arm
+  >@CD(arm)@
+  ?buffs.string = ＂pick_pocket＂ & CD(arm) <= 0
+  ^ & CanActive & foe.hp <= 16
+   activate R
+   break
+
+func summon()
+ ?CD(＂talisman_æther＂) <= 0
+  equipL talisman_aether
+  ?CanActive
+   activate L
+
+func bard()
+ ?CD(＂bardiche＂) <= 0
+ ^  | CD(＂bardiche＂) >= 875
+  equip bard
+  ?CanActive
+   activate R
+   break
+
+func mask()
+ ?CD(＂mask＂) <= 0
+  equipR cult
+  ?CanActive
+   activate R
+   break
+
+func db()
+ dabash(bash)
+ ?dabash(bash)
+  dabash(dash)
+
+func fight()
+ ?CD(＂blade＂) <= 0 & foes >= blade_req
+  BladeAct()
+ :?CD(＂voiweaver＂) <= 0 & foes >= 10
+  activate voidweaver
+ :?dist > 10
+  equip Æther crossbow
+ :
+  ?ShHeal
+   heal()
+  :
+   ?fdf = unstable & debuffs.string
+   ^ = debuff_damage
+    equip repeating
+   :
+    closemain()
+
+func mini()
+ ?dist > 10
+  equip Æther crossbow
+ :
+  ?hp < maxhp
+   heal()
+  :
+   ?fdt(＂stun＂) > 15
+    closemain()
+   :
+    equipL stone hammer +7
+    equipR cult
+
+func boss()
+ ?foe.buffs.GetCount(spider_buff_damage) <= 0
+   ?ShHeal
+    ?fdc(＂chill＂) < 6
+     closemain()
+    :
+     heal()
+   :
+    ?(CD(＂bardiche＂) <= 0
+    ^  | CD(＂bardiche＂) >= 875) & dist <= 7
+     bard()
+    :?fdc(＂chill＂) < 6
+     closemain()
+    :
+     ?dist <= 5
+      activate P
+     equipL ice sword +7
+     equipR ice sword +8
+ :
+  equipL vigor wand
+  ?CanActive
+   activate L
+  
+
+/****\
+<*AI*>
+\****/
+?foe=bolesh
+ boss()
+:
+ ?dist >= 17
+  ?summon.count <= 0
+  ^ & CD(＂talisman_æther＂) <= 0
+   summon()
+  :
+   regular()
+ :?dist >= 15 & foe!bomb_cart
+  db()
+ :?foe=boss
+  mini()
+ :
+  fight()
+
+//dodge
+?(foe=bomb_cart & (foe.hp <= 50 | dist <= 4)
+^ & CD(＂mind＂) <= 0)
+^ | (foe=bolesh
+^ & foe.state=142 & foe.time > 44
+^ & CD(＂mind＂) <= 0)
+ equipL mind
+ equipR compound
+ dodge = 1
+ break
