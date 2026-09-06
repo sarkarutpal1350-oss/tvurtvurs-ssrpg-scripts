@@ -3,14 +3,13 @@ A collection of custom automation and combat scripts for SSRPG. These scripts ha
 
 ---
 
-## 📜 Table of Contents
+## Table of Contents
 - [Overview](#overview)
 - [Scripts List](#scripts-list)
   - [Rocky Script](#rocky-plataeu)
   - [Caves Script](caves-of-fear)
   - [Deadwood Script](#deadwood-canyon)
-  - [Temple Script](temple)
-  - [Additional Utilities](#6-additional-utilities)
+  - [Temple Script](#temple)
 - [How to Use](#how-to-use)
 
 ---
