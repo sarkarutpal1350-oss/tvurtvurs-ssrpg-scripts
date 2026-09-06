@@ -4,13 +4,13 @@ A collection of custom automation and combat scripts for SSRPG. These scripts ha
 ---
 
 ## Table of Contents
-- [Overview]
 - [Scripts List]
   - [Rocky Script]
   - [Caves Script]
   - [Deadwood Script]
   - [Temple Script]
-- [How to Use]
+  - [Boiling Script]
+  - [Mushroom Script]
 
 ---
 
@@ -20,6 +20,8 @@ A collection of custom automation and combat scripts for SSRPG. These scripts ha
  * Open your in-game script editor.
  * Paste the script into your main script file or reference it using import.
  * Adjust item IDs, equip slots, or cooldown variables to match your current gear set.
+
+---
 
 ##
 (thank you, gemini)
