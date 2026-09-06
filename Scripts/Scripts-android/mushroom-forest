@@ -1,0 +1,152 @@
+
+/******\
+<*vars*>
+\******/
+
+var dist
+dist = foe.distance
+
+var foes
+foes = foe.count
+
+var stateL
+stateL = item.left.state
+
+var stateR
+stateR = item.right.state
+
+var fdf
+fdf = foe.debuffs.string
+
+var CD
+CD = item.GetCooldown
+
+var CanActive
+CanActive = item.CanActivate()
+
+var fo
+fo = foe
+
+var blade_req
+blade_req = 5
+
+var dodge
+dodge = 0
+
+var element1
+var element2
+element1 = ＂poison *8 +6＂
+element2 = ＂poison *7 +5＂
+
+var arm
+arm = ＂skeleton_arm＂
+
+/*********\
+<*weapons*>
+\*********/
+
+func heal()
+ equipR vigor sword +17
+ ?foe!mushroom_fat
+  equipL @element2@
+ :
+  equipL grappling
+
+func debuff(D)
+ ?fdf ! D
+  Equip @D@ crossbow *8
+
+func dabash(w)
+ ?CD(@w@)
+  equipL sword
+  equipR @w@
+ :
+  return true
+
+func bronze()
+ equip repeating
+
+func closemain()
+ equipL sword @element1@
+ equipR sword @element2@
+
+/******\
+<*funk*>
+\******/
+
+func BladeAct()
+ ?CD(＂blade＂) <= 0 & foe.count >= blade_req
+  equip Blade
+  ?CanActive
+   activate R
+
+func ArmorBreak()
+ ?CD(＂heavy＂) <= 0
+  equip heavy
+  ?CanActive
+   activate R
+
+func MY_ARM()
+ ?item.GetCooldown(＂skeleton_arm＂) <= 0
+ ^&foe!une_to_physical^&foe.distance<10
+  equip skeleton arm
+  ?item.CanActivate(＂skeleton_arm＂)
+  ^&buffs.string=2
+   activate R
+
+
+
+/****\
+<*AI*>
+\****/
+
+//passive
+
+?dist > 16
+ ?foe!bronze_guardian
+  equipL trisk
+  ?pickup.distance > 5
+   equipR compound *9
+  :
+   equipR star
+ :
+  bronze()
+
+//dash
+:?dist > 15 & dodge = 0
+ dabash(bash)
+ ?dabash(bash)
+  dabash(dash)
+
+//aggro
+:?fdf ! ＂debuff_dot＂ & foe!immune_to_ranged
+ debuff(fire)
+:?fdf ! ＂Chill＂ & foe!immune_to_ranged
+ debuff(ice)
+:?dist > 12 & foe!immune_to_ranged
+^ & hp > maxhp * 0.8
+ equip repeating
+:?CD(＂blade＂) <= 0 & foes >= blade_req
+ BladeAct()
+:?item.GetCooldown(＂skeleton_arm＂) <= 0
+^&foe!une_to_physical^&foe.distance<10
+ MY_ARM()
+:
+ ?foe.armor <= 0 | hp < maxhp * 0.8
+  ?hp < maxhp * 0.8
+   heal()
+  :
+   closemain()
+ :
+  ArmorBreak()
+
+//dodge
+?(foe=puff & (foe.hp <= 50 | dist <= 4)
+^ & CD(＂mind＂) <= 0)
+^ | (foe=mushroom_boss & foe!mushroom_thin
+^ & foe.state=32 & foe.time > 25
+^ & CD(＂mind＂) <= 0)
+ equipL mind
+ equipR compound
+ dodge = 1
+ break
