@@ -4,18 +4,18 @@ A collection of custom automation and combat scripts for SSRPG. These scripts ha
 ---
 
 ## Table of Contents
-- [Overview](#overview)
-- [Scripts List](#scripts-list)
-  - [Rocky Script](#rocky-plataeu)
-  - [Caves Script](caves-of-fear)
-  - [Deadwood Script](#deadwood-canyon)
-  - [Temple Script](#temple)
-- [How to Use](#how-to-use)
+- [Overview]
+- [Scripts List]
+  - [Rocky Script]
+  - [Caves Script]
+  - [Deadwood Script]
+  - [Temple Script]
+- [How to Use]
 
 ---
 
 
-🛠️ How to Use
+## How to Use
  * Copy the script corresponding to the zone or function you need.
  * Open your in-game script editor.
  * Paste the script into your main script file or reference it using import.
